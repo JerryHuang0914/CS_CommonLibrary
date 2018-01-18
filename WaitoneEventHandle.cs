@@ -2,7 +2,7 @@
 
 namespace jh.csharp.CommonLibrary
 {
-    public class JHWaitoneEventHandle
+    public class WaitoneEventHandle
     {
         public bool IsWaiting
         {
@@ -11,7 +11,7 @@ namespace jh.csharp.CommonLibrary
         private bool waiting = false;
         private EventWaitHandle handler;
 
-        public JHWaitoneEventHandle(bool initialStatus)
+        public WaitoneEventHandle(bool initialStatus)
         {
             handler = new AutoResetEvent(initialStatus);
         }
