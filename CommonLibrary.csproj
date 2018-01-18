@@ -7,7 +7,7 @@
     <ProjectGuid>{C750BB52-FC83-47E5-B02C-3CC69148A1B0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>dev.jerry_h.pc_tools.CommonLibrary</RootNamespace>
+    <RootNamespace>jh.csharp.CommonLibrary</RootNamespace>
     <AssemblyName>CommonLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace dev.jerry_h.pc_tools.CommonLibrary
+namespace jh.csharp.CommonLibrary
 {
     public class BasicFunctions
     {

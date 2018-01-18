@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace dev.jerry_h.pc_tools.CommonLibrary
+namespace jh.csharp.CommonLibrary
 {
     /// Author:Jonathan Wood
     /// Reference to:http://www.codeproject.com/Articles/415732/Reading-and-Writing-CSV-Files-in-Csharp    /// 

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
-using System.Reflection;
 
-namespace dev.jerry_h.pc_tools.CommonLibrary
+namespace jh.csharp.CommonLibrary
 {
     public class Logger
     {
@@ -34,8 +32,7 @@ namespace dev.jerry_h.pc_tools.CommonLibrary
         private static String _logPath = "";
         private static DateTime logStartTime = DateTime.MinValue;
         private static Queue<String> logMsgQueue = new Queue<String>();
-        private static bool isLogWriting = false;
-        private static Thread tdWriteLog;
+        private static object write_lock = new object();
         private static String realLogPath
         {
             get
@@ -53,20 +50,15 @@ namespace dev.jerry_h.pc_tools.CommonLibrary
             }
         }
         private static bool bIsCanceled = false;
-        public static void Initialize(String logPath)
-        {
-            Initialize(logPath, 64);
-        }
-
-        public static void Initialize(String logPath, long maximumLogFileSize_MB)
+        public static void Initialize(String log_path,LogLevels log_level=LogLevels.Debug,long maximum_log_file_size_mb=64)
         {
             logStartTime = DateTime.Now;
-            maxLogSize_MB = maximumLogFileSize_MB;
-            setLogPath(logPath);
+            maxLogSize_MB = maximum_log_file_size_mb;
+            SetLogPath(log_path);
             bIsCanceled = false;
         }
 
-        public static void setLogPath(String path)
+        public static void SetLogPath(String path)
         {
             Regex rgx = new Regex(@"(?<FileName>(\S|\s)*)(?<Extentsion>\.\S{3,4})$");
             Match m = rgx.Match(path);
@@ -78,10 +70,9 @@ namespace dev.jerry_h.pc_tools.CommonLibrary
             {
                 _logPath = path;
             }
-            createNewFile(realLogPath);
         }
 
-        private static void createNewFile(String filePath)
+        private static void create_new_file(String filePath)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             if (!File.Exists(filePath))
@@ -90,140 +81,140 @@ namespace dev.jerry_h.pc_tools.CommonLibrary
             }
         }
 
-        public static void WriteLog(LogLevels logLevel, String header, String logMessage,bool isWriteImmediately)
+        public static void WriteLog(String header, String logMessage, LogLevels logLevel=LogLevels.Information, bool isWriteImmediately=false)
         {
             if (!bIsCanceled)
             {
-                String timestamp = "[" + DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + "]";
-                String levelStr = Enum.GetName(typeof(LogLevels), (int)logLevel).Substring(0, 1);
-                String logMsg = ""; 
+                LoggerLiveMessageEventArgs log_ea = new LoggerLiveMessageEventArgs(DateTime.Now, LogLevel, header, logMessage);
                 if ((int)logLevel <= (int)LogLevel)
                 {
-                    if (logLevel == LogLevels.Super)
-                    {
-                        if (header != null && header.Length > 0)
-                        {
-                            logMsg = header + " : " + logMessage;
-                        }
-                        else
-                        {
-                            logMsg = logMessage;
-                        }
-                    }
-                    else
-                    {
-                        logMsg = timestamp + "\t" +
-                                 levelStr + "\t" +
-                                 header + "\t" +
-                                 logMessage;
-                    }
-                    logMsgQueue.Enqueue(logMsg);
+                    logMsgQueue.Enqueue(log_ea.Combined_Message);
                 }
                 if (LiveLogEventHandler != null)
                 {
-                    LiveLogEventHandler.Invoke(null, new LoggerLiveMessageEventArgs(logMsg));
+                    LiveLogEventHandler.Invoke(null,log_ea);
                 }
                 if (isWriteImmediately || logMsgQueue.Count > 10)
                 {
-                    writeLogToFile();
+                    write_log_to_file();
                 }
             }
         }
 
-        public static void WriteLog(LogLevels logLevel, String header, String logMessage)
+        private static void write_log_to_file()
         {
-            WriteLog(logLevel, header, logMessage, false);
-        }
-
-        public static void WriteLog(String header, String logMessage, bool isWriteImmediately)
-        {
-            WriteLog(LogLevels.Information, header, logMessage, isWriteImmediately);
-        }
-
-        public static void WriteLog(String header, String logMessage)
-        {
-            WriteLog(LogLevels.Information, header, logMessage, false);
-        }
-
-        private static void writeLogToFile()
-        {
-            if (!isLogWriting)
-            {
-                try
-                {
-                    FileInfo fi = new FileInfo(realLogPath);
-                    if (fi.Length > maxLogSize_MB * 1024 * 1024)
-                    {
-                        logIndex++;
-                        createNewFile(realLogPath);
-                    }
-                    if (tdWriteLog != null)
-                    {
-                        tdWriteLog.Interrupt();
-                        tdWriteLog = null;
-                    }
-                    tdWriteLog = new Thread(writeLogToFile_Runnable);
-                    tdWriteLog.Start();
-                }
-                catch
-                {
-                }
-                finally
-                {
-
-                }
-            }
-        }
-
-        private static void writeLogToFile_Runnable()
-        {
-            isLogWriting = true;
             try
             {
-                StreamWriter sw = new StreamWriter(realLogPath, true);
-                while (logMsgQueue.Count > 0)
+                if (!File.Exists(realLogPath))
                 {
-                    try
-                    {
-                        sw.WriteLine(logMsgQueue.Dequeue());
-                    }
-                    catch (Exception ex)
-                    {
-                    }
+                    create_new_file(realLogPath);
                 }
-                if (sw != null)
+
+                FileInfo fi = new FileInfo(realLogPath);
+                if (fi.Length > maxLogSize_MB * 1024 * 1024)
                 {
-                    sw.Close();
+
+                    logIndex++;
+                    create_new_file(realLogPath);
                 }
+                new Thread(write_log_to_file_runnable).Start();
             }
-            catch(Exception ex)
+            catch
             {
-                System.Windows.Forms.MessageBox.Show("Logger exception occurred, message = " + ex.Message+"\r\n"+ex.StackTrace, "Exception catched", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Warning); 
             }
             finally
             {
-                isLogWriting = false;
-            }
+
+            }           
         }
 
+        private static void write_log_to_file_runnable()
+        {
+            lock (write_lock)
+            {
+
+
+                try
+                {
+
+                    StreamWriter sw = new StreamWriter(realLogPath, true);
+                    while (logMsgQueue.Count > 0)
+                    {
+                        try
+                        {
+                            sw.WriteLine(logMsgQueue.Dequeue());
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                    }
+
+                    if (sw != null)
+                    {
+                        sw.Close();
+                    }
+                }
+
+                catch (Exception ex)
+                {
+
+                    System.Windows.Forms.MessageBox.Show("Logger exception occurred, message = " + ex.Message + "\r\n" + ex.StackTrace, "Exception catched", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Warning);
+                }
+            }
+		}
         public static void Cancel()
         {
-            WriteLog(Logger.LogLevels.Debug, "Canceled", "Logger is canceled, clean up all of the log message(s).", true);
             bIsCanceled = true;
+            if (logMsgQueue.Count > 0)
+            {
+                WriteLog("Logger", "Logger is canceled, clean up all of the log message(s).", Logger.LogLevels.Debug, true);
+                Thread.Sleep(1000);
+            }           
         }
         
-        public void Dispose()
+        public static void Dispose()
         {
-
-        }
-    
+            Cancel();
+        }    
     }
+    
     public class LoggerLiveMessageEventArgs : EventArgs
     {
-        public readonly String LiveLogMessage = "";
-        public LoggerLiveMessageEventArgs(String message)
+
+
+        public DateTime LogTime { get; }
+        public String LogTime_String
         {
-            LiveLogMessage = message;
+
+            get
+            {
+                return LogTime.ToString("HH:mm:ss");
+            }
+        }
+        public Logger.LogLevels LogLevel { get;}
+        public String Header{ get; }
+        public String Message { get; }
+        public String Combined_Message
+        {
+            get
+            {
+                String timestamp = "[" + DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + "]";
+                String levelStr = Enum.GetName(typeof(Logger.LogLevels), (int)LogLevel).Substring(0, 1);
+                String logMsg = timestamp + "\t" +
+                             levelStr + "\t" +
+                             Header + "\t" +
+                             Message;
+                return logMsg;
+            }
+        }
+        
+        public LoggerLiveMessageEventArgs(DateTime time, Logger.LogLevels level,String header,String message)
+        {
+            LogTime = time;
+            LogLevel = level;
+            Header = header;
+            Message = message;
         }
     }
 }
+

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
 
-namespace dev.jerry_h.pc_tools.CommonLibrary
+namespace jh.csharp.CommonLibrary
 {
-    public class FileManager
+    public static class FileManager
     {
-        private void clone(String sourcePath, String destinationDir)
+        public static void Clone(String sourcePath, String destinationDir)
         {
             try
             {
@@ -19,7 +19,7 @@ namespace dev.jerry_h.pc_tools.CommonLibrary
                     }
                     foreach (String directory in Directory.GetDirectories(sourcePath))
                     {
-                        clone(directory, Path.Combine(destinationDir, Path.GetFileName(directory)));
+                        Clone(directory, Path.Combine(destinationDir, Path.GetFileName(directory)));
                     }
                     foreach (String file in Directory.GetFiles(sourcePath))
                     {

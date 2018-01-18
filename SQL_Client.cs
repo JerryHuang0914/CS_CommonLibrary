@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Data.SqlClient;
 
-namespace dev.jerry_h.pc_tools.CommonLibrary
+namespace jh.csharp.CommonLibrary
 {
     public static class SQL_Client
     {
@@ -82,13 +82,8 @@ namespace dev.jerry_h.pc_tools.CommonLibrary
             }
             return myDataReader;
         }
-
-        public static bool Connect(String ServerName, String UserName, String Password, String DatabaseName)
-        {
-            return Connect(ServerName,"", UserName, Password, DatabaseName);
-        }
-
-        public static bool Connect(String ServerName, String InstanceName, String UserName, String Password, String DatabaseName)
+        
+        public static bool Connect(String ServerName, String UserName, String Password, String DatabaseName, String InstanceName = "")
         {
             Initialize(ServerName, InstanceName, UserName, Password, DatabaseName);
             return testConnection();
