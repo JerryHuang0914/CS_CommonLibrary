@@ -79,7 +79,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsynchronousStateObject.cs" />
     <Compile Include="BasicFunctions.cs" />
+    <Compile Include="AsynchronousClient.cs" />
+    <Compile Include="AsynchronousServer.cs" />
     <Compile Include="FileManager.cs" />
     <Compile Include="WaitoneEventHandle.cs" />
     <Compile Include="Logger.cs" />
