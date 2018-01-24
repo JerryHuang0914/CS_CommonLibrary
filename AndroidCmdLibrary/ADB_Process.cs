@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace jh.csharp.AndroidCmdLibrary
@@ -12,58 +13,9 @@ namespace jh.csharp.AndroidCmdLibrary
         private static String aaptPath = workingDirectory + "\\aapt.exe";
         public static void StartADB()
         {
-            Process psADB = new Process();
-            try
-            {
-                psADB.StartInfo = new ProcessStartInfo(adbPath);
-                psADB.StartInfo.WorkingDirectory = workingDirectory;
-                psADB.StartInfo.Arguments = "start-server";
-                psADB.StartInfo.CreateNoWindow = true;
-                psADB.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                psADB.StartInfo.RedirectStandardOutput = true;
-                psADB.StartInfo.UseShellExecute = false;
-                psADB.Start();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                if (psADB != null)
-                {
-                    psADB.Close();
-                }
-            }
-        }
-        public static void ADB_Reboot()
-        {
-            int deviceCount = GetDeivcesList().Count;
-            if (deviceCount <= 0)
-            {
-                Process psADB = new Process();
-                try
-                {
-                    psADB.StartInfo = new ProcessStartInfo(adbPath);
-                    psADB.StartInfo.WorkingDirectory = workingDirectory;
-                    psADB.StartInfo.Arguments = "reboot";
-                    psADB.StartInfo.CreateNoWindow = true;
-                    psADB.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                    psADB.StartInfo.RedirectStandardOutput = true;
-                    psADB.StartInfo.UseShellExecute = false;
-                    psADB.Start();
-                }
-                catch
-                {
-
-                }
-                finally
-                {
-                    if (psADB != null)
-                    {
-                        psADB.Close();
-                    }
-                }
-            }
+            String stdOutput = "", stdError = "";
+            String arg = "start-server";
+            RunAdbCommand(arg, out stdOutput, out stdError, false);
         }
 
         public static int RunAdbCommand(String argument, out String standardOutput, out String standardError, bool waitForExit = false)
@@ -110,82 +62,152 @@ namespace jh.csharp.AndroidCmdLibrary
             }
             return exitCode;
         }
+		
 
         public static int RunAdbCommand(String argument,bool waitForExit=false)
         {
             String stdOutput="", stdError = "";
             return RunAdbCommand(argument, out stdOutput, out stdError, waitForExit);
         }
-
-        public static List<String> GetPackagesList()
+		
+		public static int RunAaptCommand(String argument, out String standardOutput, out String standardError, bool waitForExit = false)
         {
-            return GetPackagesList("", "");
-        }
-        public static List<String> GetPackagesList(String keyword)
-        {
-            return GetPackagesList("", keyword);
-        }
-        public static List<String> GetPackagesList(String deviceID, String keyword)
-        {
-            List<String> packages = new List<string>();
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            argument += "shell \"pm list packages\"";
-            String returnedString = "";
-            if (keyword != null && keyword.Length > 0)
-            {
-                argument = argument.TrimEnd('\"') + " | grep " + keyword + "\"";
-            }
-            Process psADB = new Process();
+            int exitCode = -1;
+            standardOutput = "";
+            standardError = "";
+            Process ps = new Process();
             try
             {
-                psADB.StartInfo = new ProcessStartInfo(adbPath);
-                psADB.StartInfo.WorkingDirectory = workingDirectory;
-                psADB.StartInfo.Arguments = argument;
-                psADB.StartInfo.CreateNoWindow = true;
-                psADB.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                psADB.StartInfo.RedirectStandardOutput = true;
-                psADB.StartInfo.UseShellExecute = false;
-                psADB.Start();
-                returnedString = psADB.StandardOutput.ReadToEnd();
-                packages.AddRange(returnedString.Replace("\r", "").TrimEnd('\n').Split('\n'));
-                if (packages[packages.Count - 1].Length == 0)
+                ps.StartInfo = new ProcessStartInfo(aaptPath);
+                ps.StartInfo.WorkingDirectory = workingDirectory;
+                ps.StartInfo.Arguments = argument;
+                ps.StartInfo.CreateNoWindow = true;
+                ps.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                ps.StartInfo.RedirectStandardOutput = true;
+                ps.StartInfo.RedirectStandardError = true;
+                ps.StartInfo.UseShellExecute = false;
+                ps.Start();
+                if (standardOutput != null)
                 {
-                    packages.RemoveAt(packages.Count - 1);
+                    standardOutput = ps.StandardOutput.ReadToEnd().Trim(new char[] { '\n', '\r' });
                 }
+                if (standardError != null)
+                {
+                    standardError = ps.StandardError.ReadToEnd().Trim(new char[] { '\n', '\r' });
+                }
+                if (waitForExit)
+                {
+                    ps.WaitForExit();
+                }
+                exitCode = ps.ExitCode;
             }
             catch
             {
+
             }
             finally
             {
-                if (psADB != null)
+
+                if (ps != null)
                 {
-                    psADB.Close();
+
+                    ps.Close();
                 }
             }
+
+            return exitCode;
+        }
+		
+        public static List<String> GetPackagesList(String deviceID = "", String keyword = "")
+        {        
+            List<String> packages = new List<string>();
+            String stdOutput = "", stdError = "";
+            String arg = "";
+            if (deviceID != null && deviceID.Length > 0)
+            {
+                arg += "-s " + deviceID + " ";
+            }
+            arg += "shell \"pm list packages\"";
+            if (keyword != null && keyword.Length > 0)
+            {
+                arg = arg.TrimEnd('\"') + " | grep " + keyword + "\"";
+            }
+            RunAdbCommand(arg, out stdOutput, out stdError,false);
+            if (stdOutput != null && stdOutput.Length > 0)
+            {
+                packages.AddRange(stdOutput.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+            }           
             return packages;
         }
 
-        public static List<AdbDeviceInfomation> GetDeivcesList()
+        public static String GetPackageVersionNumber(String packageName, String deviceID = "")
+        {
+            String stdOutput="", stdError="";
+            String arg = "";
+            if (deviceID != null && deviceID.Length > 0)
+            {
+                arg += "-s " + deviceID + " ";
+            }
+            arg += "shell \"dumpsys package " + packageName + " | grep versionName=\"";
+            RunAdbCommand(arg, out stdOutput, out stdError, true);
+            if (stdOutput != null && stdOutput.Length > 0)
+            {
+                return stdOutput.Replace("versionName=", "");
+            }
+            else
+            {
+                return "Not Installed";
+            }
+        }
+
+        public static String GetApkFileVersionName(String apkPath)
+        {
+            String version = "Unknow";
+            String ver_pattern = @"versionName\s*=\s*('|)(?<version>(\d+\.)?(\d+\.)?(\*|\d+))('|)";
+            Regex reg = new Regex(ver_pattern);
+            String stdOutput = "", stdError = "";
+            String arg = "dump badging \""+apkPath+"\"";
+            RunAaptCommand(arg, out stdOutput, out stdError, true);
+            if(stdOutput!=null && stdOutput.Length > 0)
+            {
+                Match match = reg.Match(stdOutput);
+                if (match.Success)
+                {
+                    version = match.Groups["version"].Value;
+                }
+            }
+            return version;
+        }
+
+
+        public static int Install_Apk(String apkPath,String deviceID = "")
+        {
+            String stdOutput = "", stdError = "";
+
+            String arg = "install -r \""+ apkPath+"\"";
+            if (deviceID != null && deviceID.Length > 0)
+            {
+
+                arg = "-s " + deviceID + " "+arg;
+            }
+            int errorcode = RunAdbCommand(arg, out stdOutput, out stdError, true);
+            if(stdError!=null && stdError.Length > 0)
+            {
+                //System.Windows.Forms.MessageBox.Show(stdError);
+            }
+
+            return errorcode;
+        }
+
+		public static List<AdbDeviceInfomation> GetDeivcesList()
         {
             List<AdbDeviceInfomation> lstDeiviceList = new List<AdbDeviceInfomation>();
-            Process psADB = new Process();
-            try
+            String stdOutput = "", stdError = "";
+            String arg = "devices";
+            RunAdbCommand(arg, out stdOutput, out stdError, true);
+            if (stdOutput != null && stdOutput.Length > 0)
             {
-                psADB.StartInfo = new ProcessStartInfo(adbPath);
-                psADB.StartInfo.WorkingDirectory = workingDirectory;
-                psADB.StartInfo.Arguments = "devices";
-                psADB.StartInfo.CreateNoWindow = true;
-                psADB.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                psADB.StartInfo.RedirectStandardOutput = true;
-                psADB.StartInfo.UseShellExecute = false;
-                psADB.Start();
-                String str = psADB.StandardOutput.ReadToEnd().TrimEnd(new char[] { '\r', '\n' }).Replace("\r\n", "\n");
-                String[] strReturnInfos = str.Split('\n');
+                String[] strReturnInfos = stdOutput.Split('\n');
                 foreach (String info in strReturnInfos)
                 {
                     if (info.Contains("\t") && info.ToLower().Contains("device")) //get the online device
@@ -200,17 +222,6 @@ namespace jh.csharp.AndroidCmdLibrary
                         String status = "Offline";
                         lstDeiviceList.Add(new AdbDeviceInfomation(id, status));
                     }
-                }
-                psADB.WaitForExit();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                if (psADB != null)
-                {
-                    psADB.Close();
                 }
             }
             return lstDeiviceList;
@@ -486,6 +497,7 @@ namespace jh.csharp.AndroidCmdLibrary
 
         internal static void StartLogcatProcess(String androidID, String logcatFolderOnDevice, bool isRecordRadioLog, bool isRecordEventsLog)
         {
+            String stdOutput = "", stdError = "";
             String timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             RunAdbCommand("shell mkdir -p " + logcatFolderOnDevice,true);
             string cmdlog = "";
@@ -505,16 +517,7 @@ namespace jh.csharp.AndroidCmdLibrary
                 timestamp += "_events";
             }
             cmdlog += " -f" + "\"" + logcatFolderOnDevice + "/" + timestamp + "_logcat.txt\" -r102400 -n8 &";
-            Process psLogcat = new Process();
-            psLogcat.StartInfo = new ProcessStartInfo(adbPath);
-            psLogcat.StartInfo.Arguments = cmdlog;
-            psLogcat.StartInfo.CreateNoWindow = true;
-            psLogcat.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            psLogcat.StartInfo.RedirectStandardOutput = true;
-            psLogcat.StartInfo.UseShellExecute = false;
-            psLogcat.Start();
-            //psLogcat.WaitForExit();
-            psLogcat.Close();
+            RunAaptCommand(cmdlog, out stdOutput, out stdError, false);
         }
 
         internal static void KillLogcatProcess(String androidID)
