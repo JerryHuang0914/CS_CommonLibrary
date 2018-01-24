@@ -22,12 +22,7 @@ namespace jh.csharp.CommonLibrary
 
         // The port number for the remote device.
         public readonly int Port = 9453;
-
-        // ManualResetEvent instances signal completion.
-        //private ManualResetEvent connectDone = new ManualResetEvent(false);
-        //private ManualResetEvent sendDone = new ManualResetEvent(false);
-        private WaitoneEventHandle receiveDone = new WaitoneEventHandle(false);
-        // The response from the remote device.
+        private SingleWait_EventWaitHandle receiveDone = new SingleWait_EventWaitHandle(false);
         private String response = String.Empty;        
         private Socket client;
 

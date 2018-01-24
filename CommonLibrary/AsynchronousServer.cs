@@ -9,8 +9,8 @@ namespace jh.csharp.CommonLibrary
     public class AsynchronousServer
     {
         private readonly IPAddress ipAddress;
-        private WaitoneEventHandle acceptDone = new WaitoneEventHandle(false);
-        private WaitoneEventHandle receiveDone = new WaitoneEventHandle(false);
+        private SingleWait_EventWaitHandle acceptDone = new SingleWait_EventWaitHandle(false);
+        private SingleWait_EventWaitHandle receiveDone = new SingleWait_EventWaitHandle(false);
         public String IP_Address
         {
             get
