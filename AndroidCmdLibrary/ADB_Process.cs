@@ -63,7 +63,6 @@ namespace jh.csharp.AndroidCmdLibrary
             return exitCode;
         }
 		
-
         public static int RunAdbCommand(String argument,bool waitForExit=false)
         {
             String stdOutput="", stdError = "";
@@ -179,7 +178,6 @@ namespace jh.csharp.AndroidCmdLibrary
             return version;
         }
 
-
         public static int Install_Apk(String apkPath,String deviceID = "")
         {
             String stdOutput = "", stdError = "";
@@ -227,7 +225,7 @@ namespace jh.csharp.AndroidCmdLibrary
             return lstDeiviceList;
         }
 
-        internal static void Dial(String deviceID, String dialNumber)
+        public static void Dial(String deviceID, String dialNumber)
         {
             String argument = "";
             if (deviceID != null && deviceID.Length > 0)
@@ -238,72 +236,68 @@ namespace jh.csharp.AndroidCmdLibrary
             RunAdbCommand(argument);
         }
 
-        internal static String GetPhoneCallState(int timeout_inMilliSeconds)
-        {
-            return GetPhoneCallState("", timeout_inMilliSeconds);
-        }
-        internal static String GetPhoneCallState(String deviceID, int timeout_inMilliSeconds)
-        {
-            String result = "";
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            deleteAsusApiResult(deviceID);
-            argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a GetPhoneState";
-            RunAdbCommand(argument);
-            result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
-            return result;
-        }
+        //internal static String GetPhoneCallState(int timeout_inMilliSeconds , String deviceID="")
+        //{
+        //    String result = "";
+        //    String argument = "";
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    deleteAsusApiResult(deviceID);
+        //    argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a GetPhoneState";
+        //    RunAdbCommand(argument);
+        //    result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
+        //    return result;
+        //}
 
-        public static String GetPhoneNumber(String deviceID, int timeout_inMilliSeconds)
-        {
-            String result = "";
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            deleteAsusApiResult(deviceID);
-            argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a GetPhoneNumber";
-            RunAdbCommand(argument);
-            result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
-            return result;
-        }
+        //internal static String GetPhoneNumber(int timeout_inMilliSeconds, String deviceID="")
+        //{
+        //    String result = "";
+        //    String argument = "";
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    deleteAsusApiResult(deviceID);
+        //    argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a GetPhoneNumber";
+        //    RunAdbCommand(argument);
+        //    result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
+        //    return result;
+        //}
 
-        internal static bool AnswerCall(String deviceID, int timeout_inMilliSeconds)
-        {
-            bool isPhoneRing = false;
-            bool isTimeout = false;
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            argument += "shell input keyevent KEYCODE_HEADSETHOOK";
-            DateTime startTime = DateTime.Now;
-            #region Wait the phone call
-            do
-            {
-                isTimeout = DateTime.Now.Subtract(startTime).TotalMilliseconds > timeout_inMilliSeconds;
-                String state = GetPhoneCallState(deviceID, 5000);
-                isPhoneRing = state.Equals("RINGING");
-                Thread.Sleep(250);
-            } while (!(isTimeout || isPhoneRing));
-            #endregion Wait the phone call
-            if (isPhoneRing)
-            {
-                RunAdbCommand(argument); //Hangs up
-            }
-            else
-            {
-                EndCall(deviceID);
-            }
-            return isPhoneRing;
-        }
+        //internal static bool AnswerCall(String deviceID, int timeout_inMilliSeconds)
+        //{
+        //    bool isPhoneRing = false;
+        //    bool isTimeout = false;
+        //    String argument = "";
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    argument += "shell input keyevent KEYCODE_HEADSETHOOK";
+        //    DateTime startTime = DateTime.Now;
+        //    #region Wait the phone call
+        //    do
+        //    {
+        //        isTimeout = DateTime.Now.Subtract(startTime).TotalMilliseconds > timeout_inMilliSeconds;
+        //        String state = GetPhoneCallState(deviceID, 5000);
+        //        isPhoneRing = state.Equals("RINGING");
+        //        Thread.Sleep(250);
+        //    } while (!(isTimeout || isPhoneRing));
+        //    #endregion Wait the phone call
+        //    if (isPhoneRing)
+        //    {
+        //        RunAdbCommand(argument); //Hangs up
+        //    }
+        //    else
+        //    {
+        //        EndCall(deviceID);
+        //    }
+        //    return isPhoneRing;
+        //}
 
-        internal static void EndCall(String deviceID)
+        public static void EndCall(String deviceID)
         {
             String argument = "";
             if (deviceID != null && deviceID.Length > 0)
@@ -325,96 +319,88 @@ namespace jh.csharp.AndroidCmdLibrary
             RunAdbCommand(argument);
         }
 
-        public static String GetAsusApiResult(String deviceID, int timeout_inMilliSeconds)
-        {
-            String stdOutput = "", stdError = "";
-            String argument = "";
-            bool isTimeout = false;
-            bool isResultOK = false;
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            argument += "shell cat /sdcard/ATST/ToolInfo/APIResult";
-            DateTime startTime = DateTime.Now;
-            try
-            {
-                do
-                {
-                    RunAdbCommand(argument, out stdOutput, out stdError);
-                    Thread.Sleep(500);
-                    isResultOK = !stdOutput.ToLower().Contains("no such file or directory") && stdOutput.Trim().Length > 0;
-                    isTimeout = DateTime.Now.Subtract(startTime).TotalMilliseconds > timeout_inMilliSeconds;
-                } while (!(isTimeout || isResultOK));
-            }
-            catch (ThreadInterruptedException tie)
-            { }
-            deleteAsusApiResult(deviceID);
-            if (isResultOK)
-            {
-                return stdOutput;
-            }
-            else
-            {
-                return "ERROR";
-            }
-        }
+        //internal static String GetAsusApiResult(String deviceID, int timeout_inMilliSeconds)
+        //{
+        //    String stdOutput = "", stdError = "";
+        //    String argument = "";
+        //    bool isTimeout = false;
+        //    bool isResultOK = false;
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    argument += "shell cat /sdcard/ATST/ToolInfo/APIResult";
+        //    DateTime startTime = DateTime.Now;
+        //    try
+        //    {
+        //        do
+        //        {
+        //            RunAdbCommand(argument, out stdOutput, out stdError);
+        //            Thread.Sleep(500);
+        //            isResultOK = !stdOutput.ToLower().Contains("no such file or directory") && stdOutput.Trim().Length > 0;
+        //            isTimeout = DateTime.Now.Subtract(startTime).TotalMilliseconds > timeout_inMilliSeconds;
+        //        } while (!(isTimeout || isResultOK));
+        //    }
+        //    catch (ThreadInterruptedException tie)
+        //    { }
+        //    deleteAsusApiResult(deviceID);
+        //    if (isResultOK)
+        //    {
+        //        return stdOutput;
+        //    }
+        //    else
+        //    {
+        //        return "ERROR";
+        //    }
+        //}
 
-        public static String SetMobileDataStatus(Boolean enable, int timeout_inMilliSeconds)
-        {
-            return SetMobileDataStatus("", enable, timeout_inMilliSeconds);
-        }
-        public static String SetMobileDataStatus(String deviceID, bool enable, int timeout_inMilliSeconds)
-        {
-            String result = "";
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            deleteAsusApiResult(deviceID);
-            argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a SetMobileData -e status ";
-            if (enable)
-            {
-                argument += "on";
-            }
-            else
-            {
-                argument += "off";
-            }
-            RunAdbCommand(argument);
-            result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
-            return result;
-        }
+        //public static String SetMobileDataStatus(bool enable, int timeout_inMilliSeconds, String deviceID="")
+        //{
+        //    String result = "";
+        //    String argument = "";
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    deleteAsusApiResult(deviceID);
+        //    argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a SetMobileData -e status ";
+        //    if (enable)
+        //    {
+        //        argument += "on";
+        //    }
+        //    else
+        //    {
+        //        argument += "off";
+        //    }
+        //    RunAdbCommand(argument);
+        //    result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
+        //    return result;
+        //}
 
-        public static String SetWiFiState(bool enable, int timeout_inMilliSeconds)
-        {
-            return SetWiFiState("", enable, timeout_inMilliSeconds);
-        }
-        public static String SetWiFiState(String deviceID, bool enable, int timeout_inMilliSeconds)
-        {
-            String result = "";
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            deleteAsusApiResult(deviceID);
-            argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a SetWiFiState -e State ";
-            if (enable)
-            {
-                argument += "on";
-            }
-            else
-            {
-                argument += "off";
-            }
-            RunAdbCommand(argument);
-            result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
-            return result;
-        }
+        //public static String SetWiFiState(bool enable, int timeout_inMilliSeconds, String deviceID="")
+        //{
+        //    String result = "";
+        //    String argument = "";
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    deleteAsusApiResult(deviceID);
+        //    argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a SetWiFiState -e State ";
+        //    if (enable)
+        //    {
+        //        argument += "on";
+        //    }
+        //    else
+        //    {
+        //        argument += "off";
+        //    }
+        //    RunAdbCommand(argument);
+        //    result = GetAsusApiResult(deviceID, timeout_inMilliSeconds);
+        //    return result;
+        //}
     
-        public static void SetSimCardsEnable(String deviceID,bool sim1_enable,bool sim2_enable)
+        public static void SetSimCardsEnable(bool sim1_enable,bool sim2_enable, String deviceID="")
         {
             String argument = "";
             if (deviceID != null && deviceID.Length > 0)
@@ -429,23 +415,23 @@ namespace jh.csharp.AndroidCmdLibrary
             RunAdbCommand(argument);
         }
 
-        internal static bool IsServiceRunning(String deviceID,String serviceName)
-        {
-            bool isRunning = false;
-            String argument = "";
-            if (deviceID != null && deviceID.Length > 0)
-            {
-                argument += "-s " + deviceID + " ";
-            }
-            deleteAsusApiResult(deviceID);
-            argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a IsServiceRunning -e ServiceName " + serviceName;
-            RunAdbCommand(argument);
-            String result = GetAsusApiResult(deviceID, 5000);
-            isRunning = result.ToLower().Equals("true");
-            return isRunning;
-        }
+        //internal static bool IsServiceRunning(String serviceName, String deviceID="")
+        //{
+        //    bool isRunning = false;
+        //    String argument = "";
+        //    if (deviceID != null && deviceID.Length > 0)
+        //    {
+        //        argument += "-s " + deviceID + " ";
+        //    }
+        //    deleteAsusApiResult(deviceID);
+        //    argument += "shell am startservice --user 0 -n com.asus.at/.MainService -a IsServiceRunning -e ServiceName " + serviceName;
+        //    RunAdbCommand(argument);
+        //    String result = GetAsusApiResult(deviceID, 5000);
+        //    isRunning = result.ToLower().Equals("true");
+        //    return isRunning;
+        //}
 
-        internal static void CaptureScreen(String deviceID,String path)
+        public static void CaptureScreen(String path = "",String deviceID="")
         {
             String idParam="";
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
@@ -458,7 +444,7 @@ namespace jh.csharp.AndroidCmdLibrary
             RunAdbCommand(idParam + "shell rm /sdcard/ScreenCap.png");
         }
 
-        internal static bool IsAirplaneModeOn(String deviceID)
+        public static bool IsAirplaneModeOn(String deviceID="")
         {
             String stdOutput = "",stdError="";
             String cmd = "";
@@ -484,7 +470,7 @@ namespace jh.csharp.AndroidCmdLibrary
             return result;
         }
 
-        internal static void SetAirplaneMode(String deviceID, bool enable)
+        public static void SetAirplaneMode(bool enable, String deviceID="")
         {
             String cmd = "";
             if (deviceID != null && deviceID.Trim().Length > 0)
@@ -495,7 +481,7 @@ namespace jh.csharp.AndroidCmdLibrary
             RunAdbCommand(cmd);
         }
 
-        internal static void StartLogcatProcess(String androidID, String logcatFolderOnDevice, bool isRecordRadioLog, bool isRecordEventsLog)
+        public static void StartLogcatProcess(String logcatFolderOnDevice, bool isRecordRadioLog, bool isRecordEventsLog , String androidID="")
         {
             String stdOutput = "", stdError = "";
             String timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
@@ -520,7 +506,7 @@ namespace jh.csharp.AndroidCmdLibrary
             RunAaptCommand(cmdlog, out stdOutput, out stdError, false);
         }
 
-        internal static void KillLogcatProcess(String androidID)
+        public static void KillLogcatProcess(String androidID="")
         {
             String cmd = "";
             if (androidID != null && androidID.Trim().Length > 0)

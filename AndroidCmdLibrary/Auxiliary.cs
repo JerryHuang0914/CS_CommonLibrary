@@ -33,7 +33,7 @@ namespace jh.csharp.AndroidCmdLibrary
 
         public void StartLogcatProcess(String folderOnDevice, bool isRecordRadioLog, bool isRecordEventLog)
         {
-            ADB_Process.StartLogcatProcess(device.ID, folderOnDevice, isRecordRadioLog, isRecordEventLog);
+            ADB_Process.StartLogcatProcess(folderOnDevice, isRecordRadioLog, isRecordEventLog, device.ID);
         }
 
         public void KillLogcatprocess()

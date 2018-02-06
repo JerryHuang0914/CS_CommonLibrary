@@ -25,22 +25,12 @@ namespace jh.csharp.CommonLibrary
         public static EventHandler<LoggerLiveMessageEventArgs> LiveLogEventHandler;
         public static String CurrentLogPath
         {
-            get { return realLogPath; }
-        }
-        public static long maxLogSize_MB = 64;
-        private static int logIndex = 0;
-        private static String _logPath = "";
-        private static DateTime logStartTime = DateTime.MinValue;
-        private static Queue<String> logMsgQueue = new Queue<String>();
-        private static object write_lock = new object();
-        private static String realLogPath
-        {
             get
             {
                 String path = "";
                 if (logIndex == 0)
                 {
-                    path = _logPath + (_logPath.EndsWith("\\")?"":"_") + logStartTime.ToString("yyyyMMdd_HHmmss") + ".log";
+                    path = _logPath + (_logPath.EndsWith("\\") ? "" : "_") + logStartTime.ToString("yyyyMMdd_HHmmss") + ".log";
                 }
                 else
                 {
@@ -49,6 +39,12 @@ namespace jh.csharp.CommonLibrary
                 return path;
             }
         }
+        public static long maxLogSize_MB = 64;
+        private static int logIndex = 0;
+        private static String _logPath = "";
+        private static DateTime logStartTime = DateTime.MinValue;
+        private static Queue<String> logMsgQueue = new Queue<String>();
+        private static object write_lock = new object();
         private static bool bIsCanceled = false;
         public static void Initialize(String log_path,LogLevels log_level=LogLevels.Debug,long maximum_log_file_size_mb=64)
         {
@@ -105,17 +101,17 @@ namespace jh.csharp.CommonLibrary
         {
             try
             {
-                if (!File.Exists(realLogPath))
+                if (!File.Exists(CurrentLogPath))
                 {
-                    create_new_file(realLogPath);
+                    create_new_file(CurrentLogPath);
                 }
 
-                FileInfo fi = new FileInfo(realLogPath);
+                FileInfo fi = new FileInfo(CurrentLogPath);
                 if (fi.Length > maxLogSize_MB * 1024 * 1024)
                 {
 
                     logIndex++;
-                    create_new_file(realLogPath);
+                    create_new_file(CurrentLogPath);
                 }
                 new Thread(write_log_to_file_runnable).Start();
             }
@@ -137,7 +133,7 @@ namespace jh.csharp.CommonLibrary
                 try
                 {
 
-                    StreamWriter sw = new StreamWriter(realLogPath, true);
+                    StreamWriter sw = new StreamWriter(CurrentLogPath, true);
                     while (logMsgQueue.Count > 0)
                     {
                         try

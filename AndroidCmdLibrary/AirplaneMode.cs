@@ -16,7 +16,7 @@ namespace jh.csharp.AndroidCmdLibrary
             }
             set
             {
-                ADB_Process.SetAirplaneMode(device.ID, value);
+                ADB_Process.SetAirplaneMode(value, device.ID);
             }
         }
         public bool GetEnable_InsLib()
