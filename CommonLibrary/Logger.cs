@@ -176,8 +176,6 @@ namespace jh.csharp.CommonLibrary
     
     public class LoggerLiveMessageEventArgs : EventArgs
     {
-
-
         public DateTime LogTime { get; }
         public String LogTime_String
         {

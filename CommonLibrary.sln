@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.0
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonLibrary", "CommonLibrary\CommonLibrary.csproj", "{C750BB52-FC83-47E5-B02C-3CC69148A1B0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AndroidCmdLibrary", "AndroidCmdLibrary\AndroidCmdLibrary.csproj", "{0EFBDA86-3EF4-4D5B-B2A7-06A7B00A582C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonLibraryExample", "CommonLibraryExample\CommonLibraryExample.csproj", "{7A7A9135-C5AE-497C-A140-B4438AABB400}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,8 +43,23 @@ Global
 		{0EFBDA86-3EF4-4D5B-B2A7-06A7B00A582C}.Release|x64.Build.0 = Release|Any CPU
 		{0EFBDA86-3EF4-4D5B-B2A7-06A7B00A582C}.Release|x86.ActiveCfg = Release|Any CPU
 		{0EFBDA86-3EF4-4D5B-B2A7-06A7B00A582C}.Release|x86.Build.0 = Release|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Debug|x64.Build.0 = Debug|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Debug|x86.Build.0 = Debug|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Release|x64.ActiveCfg = Release|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Release|x64.Build.0 = Release|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Release|x86.ActiveCfg = Release|Any CPU
+		{7A7A9135-C5AE-497C-A140-B4438AABB400}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {505995E3-B02B-4F50-8A33-D6DD83CD9F64}
 	EndGlobalSection
 EndGlobal
